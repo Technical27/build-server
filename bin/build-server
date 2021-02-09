@@ -9,6 +9,7 @@ from github import Github
 from pygit2 import Repository, Signature, Commit, UserPass, RemoteCallbacks, GIT_MERGE_ANALYSIS_UP_TO_DATE, GIT_MERGE_ANALYSIS_FASTFORWARD, GIT_MERGE_ANALYSIS_NORMAL
 from build_server.build import build_packages, build_systems
 from build_server.consts import *
+from build_server.update import update_firefox_extensions
 
 def get_working_commit(repo_name, current_sha):
     g = Github(os.getenv('GITHUB_TOKEN'))
@@ -85,9 +86,6 @@ def update_package(repo, src_file, pkg_name):
     except subprocess.CalledProcessError:
         print(f'{pkg_name} failed to build')
 
-def update_firefox_extensions():
-    pass
-
 def update_nvim():
     update_package('neovim/neovim', NVIM_JSON_PATH, 'neovim-unwrapped')
 
@@ -103,6 +101,7 @@ def main():
     pull_repo(PKGS_DIR)
     update_nvim()
     update_libusb()
+    update_firefox_extensions()
     build_packages()
 
     pull_repo(CFG_DIR)
