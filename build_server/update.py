@@ -17,11 +17,11 @@ def generate_jwt():
     now = datetime.utcnow()
     exp = now + timedelta(seconds=60)
     test = jwt.encode({
-        'iss': os.getenv('ADDONS_MOZILLA_USER'),
+        'iss': os.getenv('MOZILLA_ADDONS_USER'),
         'jti': jwt_nonce(),
-        'iat': now.timestamp(),
-        'exp': exp.timestamp()
-    }, os.getenv('ADDONS_MOZILLA_SECRET'), algorithm='HS256')
+        'iat': int(now.timestamp()),
+        'exp': int(exp.timestamp())
+    }, os.getenv('MOZILLA_ADDONS_SECRET'), algorithm='HS256')
     print(test)
     return test
 
