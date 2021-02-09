@@ -22,7 +22,6 @@ def generate_jwt():
         'iat': int(now.timestamp()),
         'exp': int(exp.timestamp())
     }, os.getenv('MOZILLA_ADDONS_SECRET'), algorithm='HS256')
-    print(test)
     return test
 
 def update_firefox_extensions():
@@ -30,5 +29,5 @@ def update_firefox_extensions():
     headers = {
         'Authorization': f'JWT {jwt_token}'
     }
-    res = requests.get("https://addons.mozilla.org/api/v5/addons/addon/3693247", headers=headers)
+    res = requests.get("https://addons.mozilla.org/api/v5/addons/addon/treestyletab@piro.sakura.ne.jp", headers=headers)
     print(json.loads(res.text))
