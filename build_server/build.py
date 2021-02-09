@@ -1,4 +1,4 @@
-from consts import *
+from build_server.consts import *
 
 def build_drv(dir, attr, gc_root):
     if gc_root.exists():
