@@ -6,6 +6,7 @@ import re
 from pathlib import Path
 from dotenv import load_dotenv
 from github import Github
+from argparse import ArgumentParser
 from build_server.build import build_packages, build_systems
 from build_server.consts import *
 from build_server.update import update_firefox_extensions
@@ -54,8 +55,8 @@ def update_nvim():
 def update_libusb():
     update_package('libusb/libusb', LIBUSB_JSON_PATH, 'libusb-patched')
 
-def main():
-    load_dotenv(dotenv_path=Path('./.env'))
+def main(env):
+    load_dotenv(dotenv_path=env)
 
     if not GC_DIR.exists():
         GC_DIR.mkdir()
@@ -70,4 +71,7 @@ def main():
     build_systems()
 
 if __name__ == '__main__':
-    main()
+    parser = ArgumentParser(description='automatic builds')
+    parser.add_argument('--env', type=Path, required=False)
+    args = parser.parse_args()
+    main(args.env)
