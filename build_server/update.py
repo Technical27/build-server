@@ -45,6 +45,7 @@ def update_firefox_extensions():
     with FIREFOX_JSON_PATH.open('r') as firefox_src_file:
         firefox_src = json.load(firefox_src_file)
 
+    ext_updated = False
     for ext in firefox_src:
         latest_version = get_latest_version(ext['guid'])
 
@@ -56,7 +57,11 @@ def update_firefox_extensions():
         ext['url'] = latest_version['url']
         ext['last_hash'] = latest_version['hash']
         name = ext['name']
+        ext_updated = True
         print(f'updated extension {name}')
+
+    if not ext_updated:
+        return
 
     with FIREFOX_JSON_PATH.open('w') as firefox_src_file:
         json.dump(firefox_src, firefox_src_file)
