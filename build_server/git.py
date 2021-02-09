@@ -16,11 +16,11 @@ def pull_repo(dir):
         master_ref.set_target(master_id)
         repo.head.set_target(master_id)
     elif merge_result & GIT_MERGE_ANALYSIS_NORMAL:
-        repo.merge(remote_master_id)
+        repo.merge(master_id)
         assert repo.index.conflicts is None, 'Merge conflicts, please manually fix'
         author = Signature('Aamaruvi Yogamani', '38222826+Technical27@users.noreply.github.com')
         tree = repo.index.write_tree()
-        commit = repo.create_commit('refs/heads/master', author, author, '[build-server]: Merge', tree, [repo.head.target, remote_master_id])
+        commit = repo.create_commit('refs/heads/master', author, author, '[build-server]: Merge', tree, [repo.head.target, master_id])
         repo.state_cleanup()
 
 def commit_changes(file, dir):
