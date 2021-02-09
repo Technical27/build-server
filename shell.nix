@@ -6,7 +6,7 @@ pkgs.mkShell {
       PyGithub
       python-dotenv
       pygit2
-      PyJWT
+      pyjwt
       setuptools
       requests
     ]))
