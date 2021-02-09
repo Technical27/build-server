@@ -6,5 +6,6 @@ setup(
     install_requires=['PyGithub','pygit2','python-dotenv'],
     include_package_data=True,
     zip_safe=True,
-    scripts=['bin/build-server']
+    scripts=['bin/build-server'],
+    packages=['build_server']
 )
