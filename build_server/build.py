@@ -1,3 +1,5 @@
+import subprocess
+import json
 from build_server.consts import *
 
 def build_drv(dir, attr, gc_root):
