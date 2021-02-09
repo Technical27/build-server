@@ -3,7 +3,7 @@ import os
 import random
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def jwt_nonce():
     random_string = ''
@@ -15,7 +15,7 @@ def jwt_nonce():
 
 def generate_jwt():
     now = datetime.utcnow()
-    exp = now + datetime.timedelta(seconds=60)
+    exp = now + timedelta(seconds=60)
     test = jwt.encode({
         'iss': os.getenv('ADDONS_MOZILLA_USER'),
         'jti': jwt_nonce(),

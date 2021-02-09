@@ -6,7 +6,12 @@ python3Packages.buildPythonPackage {
 
   src = ./.;
 
-  propagatedBuildInputs = with python3Packages; [ pygit2 PyGithub python-dotenv ];
+  propagatedBuildInputs = with python3Packages; [
+    pygit2
+    PyGithub
+    python-dotenv
+    pyjwt requests
+  ];
 
   doCheck = false;
 }
