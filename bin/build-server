@@ -11,6 +11,7 @@ from build_server.build import build_packages, build_systems
 from build_server.consts import *
 from build_server.update import update_firefox_extensions
 from build_server.git import pull_repo, commit_changes, push_changes
+from build_server.flake import update_flake
 
 def get_working_commit(repo_name, current_sha):
     g = Github(os.getenv('GITHUB_TOKEN'))
@@ -45,7 +46,6 @@ def update_package(repo, src_file, pkg_name):
     try:
         subprocess.run(['nix', 'build', '--no-link', f'{PKGS_DIR}#{pkg_name}'], check=True)
         commit_changes(src_file.name, PKGS_DIR)
-        push_changes(PKGS_DIR)
     except subprocess.CalledProcessError:
         print(f'{pkg_name} failed to build')
 
@@ -61,14 +61,18 @@ def main(env):
     if not GC_DIR.exists():
         GC_DIR.mkdir()
 
+    update_flake(PKGS_DIR)
     pull_repo(PKGS_DIR)
     update_nvim()
     update_libusb()
     update_firefox_extensions()
     build_packages()
+    push_changes(PKGS_DIR)
 
+    update_flake(CFG_DIR)
     pull_repo(CFG_DIR)
     build_systems()
+    push_changes(CFG_DIR)
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='automatic builds')

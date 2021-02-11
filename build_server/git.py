@@ -1,5 +1,5 @@
 import os
-from pygit2 import Repository, Signature, Commit, UserPass, RemoteCallbacks, GIT_MERGE_ANALYSIS_UP_TO_DATE, GIT_MERGE_ANALYSIS_FASTFORWARD, GIT_MERGE_ANALYSIS_NORMAL
+from pygit2 import *
 
 def pull_repo(dir):
     repo = Repository(dir)
@@ -25,8 +25,14 @@ def pull_repo(dir):
 
 def commit_changes(file, dir):
     repo = Repository(dir)
+
+    for path, flags in repo.status():
+        if path == file and flags != GIT_STATUS_CURRENT:
+            return
+
     repo.index.add(file)
     repo.index.write()
+
     tree = repo.index.write_tree()
     author = Signature('Aamaruvi Yogamani', '38222826+Technical27@users.noreply.github.com')
     old_head = repo.head.peel(Commit).id
