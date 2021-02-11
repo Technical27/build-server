@@ -26,7 +26,7 @@ def pull_repo(dir):
 def commit_changes(file, dir):
     repo = Repository(dir)
 
-    for path, flags in repo.status():
+    for path, flags in repo.status().items():
         if path == file and flags != GIT_STATUS_CURRENT:
             return
 
