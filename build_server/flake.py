@@ -11,7 +11,7 @@ def update_flake(dir):
     with dir.joinpath('flake.lock').open('r') as lock_file:
         flake_json = json.load(lock_file)
 
-    if flake_json['version'] > 7:
+    if flake_json['version'] != 7:
         raise FlakeUnsupported
 
     # 99% sure that it will be 'root', but we can never be sure

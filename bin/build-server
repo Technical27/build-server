@@ -1,59 +1,12 @@
 #!/usr/bin/env python
-import subprocess
-import os
-import json
-import re
 from pathlib import Path
 from dotenv import load_dotenv
-from github import Github
 from argparse import ArgumentParser
 from build_server.build import build_packages, build_systems
 from build_server.consts import *
-from build_server.update import update_firefox_extensions
+from build_server.update import update_firefox_extensions, update_nvim, update_libusb
 from build_server.git import pull_repo, commit_changes, push_changes
 from build_server.flake import update_flake
-
-def get_working_commit(repo_name, current_sha):
-    g = Github(os.getenv('GITHUB_TOKEN'))
-    repo = g.get_repo(repo_name)
-    commits = repo.get_commits(sha='master')
-    for commit in commits[:20]:
-        if commit.sha == current_sha:
-            return current_sha
-        elif commit.get_combined_status().state == 'success':
-            return commit.sha
-
-
-def update_package(repo, src_file, pkg_name):
-    with src_file.open('r') as pkg_file:
-        current_commit = json.load(pkg_file)['rev']
-
-    latest_commit = get_working_commit(repo, current_commit)
-    if latest_commit == current_commit:
-        return
-
-    with src_file.open('w') as pkg_file:
-        json.dump({ 'rev': latest_commit, 'sha256': FAKE_HASH }, pkg_file)
-
-    build = subprocess.run(['nix', 'build', '--no-link', f'{PKGS_DIR}#{pkg_name}'], capture_output=True)
-    match = HASH_RE.search(build.stderr.decode('utf-8'))
-    sha256 = match.group(1)
-
-    with src_file.open('w') as pkg_file:
-        json.dump({ 'rev': latest_commit, 'sha256': sha256 }, pkg_file)
-
-    print(f'updated {pkg_name} to {commit}')
-    try:
-        subprocess.run(['nix', 'build', '--no-link', f'{PKGS_DIR}#{pkg_name}'], check=True)
-        commit_changes(src_file.name, PKGS_DIR)
-    except subprocess.CalledProcessError:
-        print(f'{pkg_name} failed to build')
-
-def update_nvim():
-    update_package('neovim/neovim', NVIM_JSON_PATH, 'neovim-unwrapped')
-
-def update_libusb():
-    update_package('libusb/libusb', LIBUSB_JSON_PATH, 'libusb-patched')
 
 def main(env):
     load_dotenv(dotenv_path=env)

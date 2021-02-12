@@ -8,13 +8,51 @@ from datetime import datetime, timedelta
 from build_server.consts import *
 from build_server.git import commit_changes, push_changes
 
+def get_working_commit(repo_name, current_sha):
+    g = Github(os.getenv('GITHUB_TOKEN'))
+    repo = g.get_repo(repo_name)
+    commits = repo.get_commits(sha='master')
+    for commit in commits[:20]:
+        if commit.sha == current_sha:
+            return None
+        elif commit.get_combined_status().state == 'success':
+            return commit.sha
+    return None
+
+def update_package(repo, src_file, pkg_name):
+    with src_file.open('r') as pkg_file:
+        current_commit = json.load(pkg_file)['rev']
+
+    latest_commit = get_working_commit(repo, current_commit)
+    if latest_commit == None:
+        return
+
+    with src_file.open('w') as pkg_file:
+        json.dump({ 'rev': latest_commit, 'sha256': FAKE_HASH }, pkg_file)
+
+    build = subprocess.run(['nix', 'build', '--no-link', f'{PKGS_DIR}#{pkg_name}'], capture_output=True)
+    match = HASH_RE.search(build.stderr.decode('utf-8'))
+    sha256 = match.group(1)
+
+    with src_file.open('w') as pkg_file:
+        json.dump({ 'rev': latest_commit, 'sha256': sha256 }, pkg_file)
+
+    print(f'updated {pkg_name} to {commit}')
+    try:
+        subprocess.run(['nix', 'build', '--no-link', f'{PKGS_DIR}#{pkg_name}'], check=True)
+        commit_changes(src_file.name, PKGS_DIR)
+    except subprocess.CalledProcessError:
+        print(f'{pkg_name} failed to build')
+
+def update_nvim():
+    update_package('neovim/neovim', NVIM_JSON_PATH, 'neovim-unwrapped')
+
+def update_libusb():
+    update_package('libusb/libusb', LIBUSB_JSON_PATH, 'libusb-patched')
+
 def jwt_nonce():
-    random_string = ''
-
-    for _ in range(20):
-        random_string += chr(random.randint(0, 127))
-
-    return random_string
+    # i hate that this works
+    return ''.join([str(random.randint(0, 9)) for _ in range(30)])
 
 def generate_jwt():
     now = datetime.utcnow()
