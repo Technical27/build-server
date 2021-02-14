@@ -30,6 +30,7 @@ def commit_changes(file, dir):
         if path == file and flags != GIT_STATUS_CURRENT:
             return
 
+    print(f'commiting {file}')
     repo.index.add(file)
     repo.index.write()
 
