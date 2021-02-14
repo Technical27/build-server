@@ -38,7 +38,8 @@ def update_package(repo, src_file, pkg_name):
     build = subprocess.run(
         ['nix', 'build', '--no-link', f'{PKGS_DIR}#{pkg_name}'],
         capture_output=True,
-        check=True
+        # this fill fail because the given hash is fake
+        check=False
     )
     match = HASH_RE.search(build.stderr.decode('utf-8'))
     sha256 = match.group(1)
