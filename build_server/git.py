@@ -41,7 +41,7 @@ def commit_changes(file, repo_path):
     repo = Repository(repo_path)
 
     for path, flags in repo.status().items():
-        if path == file and flags != GIT_STATUS_CURRENT:
+        if path == file and flags == GIT_STATUS_CURRENT:
             return
 
     print(f'commiting {file}')
