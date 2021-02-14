@@ -1,59 +1,73 @@
-import jwt
 import os
 import random
-import requests
 import json
 import subprocess
-from github import Github
 from datetime import datetime, timedelta
-from build_server.consts import *
+import jwt
+import requests
+from github import Github
+from build_server.consts import \
+    FAKE_HASH, PKGS_DIR, HASH_RE, \
+    LIBUSB_JSON_PATH, NVIM_JSON_PATH, FIREFOX_JSON_PATH
 from build_server.git import commit_changes, push_changes
 
+
 def get_working_commit(repo_name, current_sha):
-    g = Github(os.getenv('GITHUB_TOKEN'))
-    repo = g.get_repo(repo_name)
+    github = Github(os.getenv('GITHUB_TOKEN'))
+    repo = github.get_repo(repo_name)
     commits = repo.get_commits(sha='master')
     for commit in commits[:20]:
         if commit.sha == current_sha:
-            return None
-        elif commit.get_combined_status().state == 'success':
+            break
+        if commit.get_combined_status().state == 'success':
             return commit.sha
     return None
+
 
 def update_package(repo, src_file, pkg_name):
     with src_file.open('r') as pkg_file:
         current_commit = json.load(pkg_file)['rev']
 
     latest_commit = get_working_commit(repo, current_commit)
-    if latest_commit == None:
+    if latest_commit is None:
         return
 
     with src_file.open('w') as pkg_file:
-        json.dump({ 'rev': latest_commit, 'sha256': FAKE_HASH }, pkg_file)
+        json.dump({'rev': latest_commit, 'sha256': FAKE_HASH}, pkg_file)
 
-    build = subprocess.run(['nix', 'build', '--no-link', f'{PKGS_DIR}#{pkg_name}'], capture_output=True)
+    build = subprocess.run(
+        ['nix', 'build', '--no-link', f'{PKGS_DIR}#{pkg_name}'],
+        capture_output=True,
+        check=True
+    )
     match = HASH_RE.search(build.stderr.decode('utf-8'))
     sha256 = match.group(1)
 
     with src_file.open('w') as pkg_file:
-        json.dump({ 'rev': latest_commit, 'sha256': sha256 }, pkg_file)
+        json.dump({'rev': latest_commit, 'sha256': sha256}, pkg_file)
 
-    print(f'updated {pkg_name} to {commit}')
+    print(f'updated {pkg_name} to {latest_commit}')
     try:
-        subprocess.run(['nix', 'build', '--no-link', f'{PKGS_DIR}#{pkg_name}'], check=True)
+        subprocess.run(
+            ['nix', 'build', '--no-link', f'{PKGS_DIR}#{pkg_name}'], check=True
+        )
         commit_changes(src_file.name, PKGS_DIR)
     except subprocess.CalledProcessError:
         print(f'{pkg_name} failed to build')
 
+
 def update_nvim():
     update_package('neovim/neovim', NVIM_JSON_PATH, 'neovim-unwrapped')
+
 
 def update_libusb():
     update_package('libusb/libusb', LIBUSB_JSON_PATH, 'libusb-patched')
 
+
 def jwt_nonce():
     # i hate that this works
     return ''.join([str(random.randint(0, 9)) for _ in range(30)])
+
 
 def generate_jwt():
     now = datetime.utcnow()
@@ -65,19 +79,24 @@ def generate_jwt():
         'exp': int(exp.timestamp())
     }, os.getenv('MOZILLA_ADDONS_SECRET'), algorithm='HS256')
 
+
 def amo_api_request(path):
     jwt_token = generate_jwt()
     headers = {
         'Authorization': f'JWT {jwt_token}'
     }
-    res = requests.get(f'https://addons.mozilla.org/api/v5/{path}', headers=headers)
+    res = requests.get(
+        f'https://addons.mozilla.org/api/v5/{path}', headers=headers
+    )
     return json.loads(res.text)
+
 
 def get_latest_version(guid):
     data = amo_api_request(f'addons/addon/{guid}')
     for file in data['current_version']['files']:
         if file['platform'] == 'all' or file['platform'] == 'linux':
             return file
+    return None
 
 
 def update_firefox_extensions():
@@ -87,11 +106,16 @@ def update_firefox_extensions():
     ext_updated = False
     for ext in firefox_src:
         latest_version = get_latest_version(ext['guid'])
+        assert latest_version is not None, 'failed to get latest version'
 
         if latest_version['hash'] == ext['last_hash']:
             continue
 
-        prefetch = subprocess.run(['nix-prefetch-url', latest_version['url']], capture_output=True)
+        prefetch = subprocess.run(
+            ['nix-prefetch-url', latest_version['url']],
+            capture_output=True,
+            check=True
+        )
         ext['sha256'] = prefetch.stdout.decode('utf-8').strip()
         ext['url'] = latest_version['url']
         ext['last_hash'] = latest_version['hash']
@@ -106,8 +130,16 @@ def update_firefox_extensions():
         json.dump(firefox_src, firefox_src_file)
 
     try:
-        subprocess.run(['nix', 'build', '--no-link', f'{PKGS_DIR}#firefox-with-extensions'], check=True)
+        subprocess.run(
+            [
+                'nix',
+                'build',
+                '--no-link',
+                f'{PKGS_DIR}#firefox-with-extensions'
+            ],
+            check=True
+        )
         commit_changes(FIREFOX_JSON_PATH.name, PKGS_DIR)
         push_changes(PKGS_DIR)
     except subprocess.CalledProcessError:
-        print(f'firefox failed to build')
+        print('firefox failed to build')

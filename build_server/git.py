@@ -1,8 +1,13 @@
 import os
-from pygit2 import *
+from pygit2 import \
+    Repository, Commit, UserPass, RemoteCallbacks, \
+    GIT_MERGE_ANALYSIS_FASTFORWARD, GIT_MERGE_ANALYSIS_NORMAL, \
+    GIT_MERGE_ANALYSIS_UP_TO_DATE, GIT_STATUS_CURRENT
+from build_server.consts import SIGNATURE
 
-def pull_repo(dir):
-    repo = Repository(dir)
+
+def pull_repo(repo_path):
+    repo = Repository(repo_path)
     remote = repo.remotes['origin']
     remote.fetch()
     master_id = repo.lookup_reference('refs/remotes/origin/master').target
@@ -10,21 +15,30 @@ def pull_repo(dir):
 
     if merge_result & GIT_MERGE_ANALYSIS_UP_TO_DATE:
         return
-    elif merge_result & GIT_MERGE_ANALYSIS_FASTFORWARD:
+
+    if merge_result & GIT_MERGE_ANALYSIS_FASTFORWARD:
         repo.checkout_tree(repo.get(master_id))
         master_ref = repo.lookup_reference('refs/heads/master')
         master_ref.set_target(master_id)
         repo.head.set_target(master_id)
     elif merge_result & GIT_MERGE_ANALYSIS_NORMAL:
         repo.merge(master_id)
-        assert repo.index.conflicts is None, 'Merge conflicts, please manually fix'
-        author = Signature('Aamaruvi Yogamani', '38222826+Technical27@users.noreply.github.com')
+        assert repo.index.conflicts is None, \
+            'Merge conflicts, please manually fix'
         tree = repo.index.write_tree()
-        commit = repo.create_commit('refs/heads/master', author, author, '[build-server]: Merge', tree, [repo.head.target, master_id])
+        repo.create_commit(
+            'refs/heads/master',
+            SIGNATURE,
+            SIGNATURE,
+            '[build-server]: Merge',
+            tree,
+            [repo.head.target, master_id]
+        )
         repo.state_cleanup()
 
-def commit_changes(file, dir):
-    repo = Repository(dir)
+
+def commit_changes(file, repo_path):
+    repo = Repository(repo_path)
 
     for path, flags in repo.status().items():
         if path == file and flags != GIT_STATUS_CURRENT:
@@ -35,12 +49,18 @@ def commit_changes(file, dir):
     repo.index.write()
 
     tree = repo.index.write_tree()
-    author = Signature('Aamaruvi Yogamani', '38222826+Technical27@users.noreply.github.com')
     old_head = repo.head.peel(Commit).id
-    repo.create_commit('refs/heads/master', author, author, f'[build-server]: update {file}', tree, [old_head])
+    repo.create_commit(
+        'refs/heads/master',
+        SIGNATURE, SIGNATURE,
+        f'[build-server]: update {file}',
+        tree,
+        [old_head]
+    )
 
-def push_changes(dir):
-    repo = Repository(dir)
+
+def push_changes(repo_path):
+    repo = Repository(repo_path)
     remote = repo.remotes['origin']
     creds = UserPass('Technical27', os.getenv('GITHUB_TOKEN'))
     callback = RemoteCallbacks(credentials=creds)

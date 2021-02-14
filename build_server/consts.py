@@ -1,6 +1,7 @@
 import re
 import os
 from pathlib import Path
+from pygit2 import Signature
 
 PKGS_DIR = Path(os.getenv('PKGS_DIR'))
 CFG_DIR = Path(os.getenv('CFG_DIR'))
@@ -11,4 +12,8 @@ FIREFOX_JSON_PATH = PKGS_DIR.joinpath('firefox-src.json')
 
 GC_DIR = Path(os.getenv('GC_DIR'))
 FAKE_HASH = 'sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='
-HASH_RE = re.compile('\s+got:\s+(sha256-[a-zA-Z0-9/+=]+)')
+HASH_RE = re.compile(r'\s+got:\s+(sha256-[a-zA-Z0-9/+=]+)')
+SIGNATURE = Signature(
+    'Aamaruvi Yogamani',
+    '38222826+Technical27@users.noreply.github.com'
+)

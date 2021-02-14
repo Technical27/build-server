@@ -9,6 +9,7 @@ pkgs.mkShell {
       pyjwt
       setuptools
       requests
+      python-language-server
     ]))
   ];
 }

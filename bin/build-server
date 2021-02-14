@@ -3,10 +3,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 from argparse import ArgumentParser
 from build_server.build import build_packages, build_systems
-from build_server.consts import *
-from build_server.update import update_firefox_extensions, update_nvim, update_libusb
-from build_server.git import pull_repo, commit_changes, push_changes
+from build_server.consts import GC_DIR, PKGS_DIR, CFG_DIR
+from build_server.update import \
+    update_firefox_extensions, update_nvim, update_libusb
+from build_server.git import pull_repo, push_changes
 from build_server.flake import update_flake
+
 
 def main(env):
     load_dotenv(dotenv_path=env)
@@ -26,6 +28,7 @@ def main(env):
     pull_repo(CFG_DIR)
     build_systems()
     push_changes(CFG_DIR)
+
 
 if __name__ == '__main__':
     parser = ArgumentParser(description='automatic builds')
