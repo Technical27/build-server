@@ -45,7 +45,6 @@ def commit_changes(file: str, repo_path: Path):
     repo = Repository(repo_path)
 
     for path, flags in repo.status().items():
-        print(f'path: {path}, flags: {flags}')
         if path == file and (flags != GIT_STATUS_WT_MODIFIED or flags != GIT_STATUS_WT_NEW):
             return
 
