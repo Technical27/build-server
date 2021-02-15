@@ -41,14 +41,12 @@ def update_flake(flake_dir):
         else:
             branch = repo.default_branch
 
-        latest_commit = repo.get_branch(branch).commit
-        curr_commit = node['locked']['rev']
+        latest_commit = repo.get_branch(branch).commit.sha
         if latest_commit != node['locked']['rev']:
-            print(f'test: {latest_commit}, {curr_commit}')
             print(f'updating input {name}')
-            # subprocess.run(
-            #     ['nix', 'flake', 'update', '--update-input', name, flake_dir],
-            #     check=True
-            # )
+            subprocess.run(
+                ['nix', 'flake', 'update', '--update-input', name, flake_dir],
+                check=True
+            )
 
     # commit_changes('flake.lock', flake_dir)
