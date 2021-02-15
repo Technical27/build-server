@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from pygit2 import (GIT_MERGE_ANALYSIS_FASTFORWARD, GIT_MERGE_ANALYSIS_NORMAL,
@@ -9,6 +8,7 @@ from build_server.consts import GITHUB_TOKEN, SIGNATURE
 
 
 def pull_repo(repo_path: Path):
+    """Update a repository at repo_path by pulling from the remote named origin."""
     repo = Repository(repo_path)
     remote = repo.remotes['origin']
     remote.fetch()
@@ -40,6 +40,7 @@ def pull_repo(repo_path: Path):
 
 
 def commit_changes(file: str, repo_path: Path):
+    """Commit changes on file to the repository at repo_path."""
     repo = Repository(repo_path)
 
     for path, flags in repo.status().items():
@@ -62,6 +63,7 @@ def commit_changes(file: str, repo_path: Path):
 
 
 def push_changes(repo_path: Path):
+    """Push the repository at repo_path to the remote named origin."""
     repo = Repository(repo_path)
     remote = repo.remotes['origin']
     creds = UserPass('Technical27', GITHUB_TOKEN)
