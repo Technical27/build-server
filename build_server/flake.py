@@ -49,4 +49,4 @@ def update_flake(flake_dir):
                 check=True
             )
 
-    # commit_changes('flake.lock', flake_dir)
+    commit_changes('flake.lock', flake_dir)
