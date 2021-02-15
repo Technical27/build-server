@@ -1,9 +1,11 @@
-import subprocess
 import json
-from build_server.consts import PKGS_DIR, GC_DIR, CFG_DIR
+import subprocess
+from pathlib import Path
+
+from build_server.consts import CFG_DIR, GC_DIR, PKGS_DIR
 
 
-def build_drv(flake_dir, attr, gc_root):
+def build_drv(flake_dir: Path, attr: str, gc_root: Path):
     if gc_root.exists():
         gc_root.unlink()
 
@@ -13,12 +15,12 @@ def build_drv(flake_dir, attr, gc_root):
     )
 
 
-def build_package(pkg):
+def build_package(pkg: str):
     pkg_gc_root = GC_DIR.joinpath(pkg)
     build_drv(PKGS_DIR, pkg, pkg_gc_root)
 
 
-def build_system(system):
+def build_system(system: str):
     system_gc_root = GC_DIR.joinpath(system)
     build_drv(
         CFG_DIR,

@@ -1,12 +1,14 @@
 import os
-from pygit2 import \
-    Repository, Commit, UserPass, RemoteCallbacks, \
-    GIT_MERGE_ANALYSIS_FASTFORWARD, GIT_MERGE_ANALYSIS_NORMAL, \
-    GIT_MERGE_ANALYSIS_UP_TO_DATE, GIT_STATUS_CURRENT
-from build_server.consts import SIGNATURE
+from pathlib import Path
+
+from pygit2 import (GIT_MERGE_ANALYSIS_FASTFORWARD, GIT_MERGE_ANALYSIS_NORMAL,
+                    GIT_MERGE_ANALYSIS_UP_TO_DATE, GIT_STATUS_CURRENT, Commit,
+                    RemoteCallbacks, Repository, UserPass)
+
+from build_server.consts import GITHUB_TOKEN, SIGNATURE
 
 
-def pull_repo(repo_path):
+def pull_repo(repo_path: Path):
     repo = Repository(repo_path)
     remote = repo.remotes['origin']
     remote.fetch()
@@ -37,7 +39,7 @@ def pull_repo(repo_path):
         repo.state_cleanup()
 
 
-def commit_changes(file, repo_path):
+def commit_changes(file: str, repo_path: Path):
     repo = Repository(repo_path)
 
     for path, flags in repo.status().items():
@@ -59,10 +61,10 @@ def commit_changes(file, repo_path):
     )
 
 
-def push_changes(repo_path):
+def push_changes(repo_path: Path):
     repo = Repository(repo_path)
     remote = repo.remotes['origin']
-    creds = UserPass('Technical27', os.getenv('GITHUB_TOKEN'))
+    creds = UserPass('Technical27', GITHUB_TOKEN)
     callback = RemoteCallbacks(credentials=creds)
     remote.connect(callbacks=callback)
     remote.push(['refs/heads/master:refs/heads/master'], callbacks=callback)

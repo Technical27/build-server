@@ -1,7 +1,10 @@
 import json
-import subprocess
 import os
+import subprocess
+
 from github import Github
+
+from build_server.consts import GITHUB_TOKEN
 from build_server.git import commit_changes
 
 
@@ -20,7 +23,7 @@ def update_flake(flake_dir):
     root = flake_json['root']
     root_inputs = flake_json['nodes'][root]['inputs']
 
-    github = Github(os.getenv('GITHUB_TOKEN'))
+    github = Github(GITHUB_TOKEN)
 
     for name, node in root_inputs.items():
         node = flake_json['nodes'][node]

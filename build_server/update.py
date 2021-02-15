@@ -1,19 +1,22 @@
-import os
-import random
 import json
+import random
 import subprocess
 from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, Union
+
 import jwt
 import requests
 from github import Github
-from build_server.consts import \
-    FAKE_HASH, PKGS_DIR, HASH_RE, \
-    LIBUSB_JSON_PATH, NVIM_JSON_PATH, FIREFOX_JSON_PATH
-from build_server.git import commit_changes, push_changes
+
+from build_server.consts import (FAKE_HASH, FIREFOX_JSON_PATH, GITHUB_TOKEN,
+                                 HASH_RE, LIBUSB_JSON_PATH, NVIM_JSON_PATH,
+                                 PKGS_DIR, MOZILLA_ADDONS_USER, MOZILLA_ADDONS_SECRET)
+from build_server.git import commit_changes
 
 
-def get_working_commit(repo_name, current_sha):
-    github = Github(os.getenv('GITHUB_TOKEN'))
+def get_working_commit(repo_name: str, current_sha: str):
+    github = Github(GITHUB_TOKEN)
     repo = github.get_repo(repo_name)
     commits = repo.get_commits(sha='master')
     for commit in commits[:20]:
@@ -24,7 +27,7 @@ def get_working_commit(repo_name, current_sha):
     return None
 
 
-def update_package(repo, src_file, pkg_name):
+def update_package(repo: str, src_file: Path, pkg_name: str):
     with src_file.open('r') as pkg_file:
         current_commit = json.load(pkg_file)['rev']
 
@@ -65,23 +68,23 @@ def update_libusb():
     update_package('libusb/libusb', LIBUSB_JSON_PATH, 'libusb-patched')
 
 
-def jwt_nonce():
+def jwt_nonce() -> str:
     # i hate that this works
     return ''.join([str(random.randint(0, 9)) for _ in range(30)])
 
 
-def generate_jwt():
+def generate_jwt() -> bytes:
     now = datetime.utcnow()
     exp = now + timedelta(seconds=60)
     return jwt.encode({
-        'iss': os.getenv('MOZILLA_ADDONS_USER'),
+        'iss': MOZILLA_ADDONS_USER,
         'jti': jwt_nonce(),
         'iat': int(now.timestamp()),
         'exp': int(exp.timestamp())
-    }, os.getenv('MOZILLA_ADDONS_SECRET'), algorithm='HS256')
+    }, MOZILLA_ADDONS_SECRET, algorithm='HS256')
 
 
-def amo_api_request(path):
+def amo_api_request(path: str):
     jwt_token = generate_jwt()
     headers = {
         'Authorization': f'JWT {jwt_token}'
@@ -92,7 +95,7 @@ def amo_api_request(path):
     return json.loads(res.text)
 
 
-def get_latest_version(guid):
+def get_latest_version(guid: str) -> Union[Dict[str, Any], None]:
     data = amo_api_request(f'addons/addon/{guid}')
     for file in data['current_version']['files']:
         if file['platform'] == 'all' or file['platform'] == 'linux':
@@ -141,6 +144,5 @@ def update_firefox_extensions():
             check=True
         )
         commit_changes(FIREFOX_JSON_PATH.name, PKGS_DIR)
-        push_changes(PKGS_DIR)
     except subprocess.CalledProcessError:
         print('firefox failed to build')
