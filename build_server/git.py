@@ -1,8 +1,8 @@
 from pathlib import Path
 
 from pygit2 import (GIT_MERGE_ANALYSIS_FASTFORWARD, GIT_MERGE_ANALYSIS_NORMAL,
-                    GIT_MERGE_ANALYSIS_UP_TO_DATE, GIT_STATUS_CURRENT, Commit,
-                    RemoteCallbacks, Repository, UserPass)
+                    GIT_MERGE_ANALYSIS_UP_TO_DATE, GIT_STATUS_WT_MODIFIED,
+                    Commit, RemoteCallbacks, Repository, UserPass)
 
 from build_server.consts import GITHUB_TOKEN, SIGNATURE
 
@@ -45,8 +45,7 @@ def commit_changes(file: str, repo_path: Path):
 
     for path, flags in repo.status().items():
         print(f'path: {path}, flags: {flags}')
-        if path == file and flags == GIT_STATUS_CURRENT:
-            print(f'file {file} was not changed, ignoring')
+        if path == file and (flags != GIT_STATUS_WT_MODIFIED or flags != GIT_STATUS_WT_NEW):
             return
 
     print(f'commiting {file}')
