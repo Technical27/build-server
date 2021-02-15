@@ -2,7 +2,8 @@ from pathlib import Path
 
 from pygit2 import (GIT_MERGE_ANALYSIS_FASTFORWARD, GIT_MERGE_ANALYSIS_NORMAL,
                     GIT_MERGE_ANALYSIS_UP_TO_DATE, GIT_STATUS_WT_MODIFIED,
-                    Commit, RemoteCallbacks, Repository, UserPass)
+                    GIT_STATUS_WT_NEW, Commit, RemoteCallbacks, Repository,
+                    UserPass)
 
 from build_server.consts import GITHUB_TOKEN, SIGNATURE
 
