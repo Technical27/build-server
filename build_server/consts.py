@@ -26,7 +26,6 @@ def load_env() -> Tuple[Path, Path, Path, str, str, str]:
 PKGS_DIR, CFG_DIR, GC_DIR, GITHUB_TOKEN, MOZILLA_ADDONS_USER, MOZILLA_ADDONS_SECRET = load_env()
 
 NVIM_JSON_PATH = PKGS_DIR.joinpath('neovim-src.json')
-LIBUSB_JSON_PATH = PKGS_DIR.joinpath('libusb-src.json')
 FIREFOX_JSON_PATH = PKGS_DIR.joinpath('firefox-src.json')
 
 FAKE_HASH = 'sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='

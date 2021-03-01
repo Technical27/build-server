@@ -8,7 +8,7 @@ from build_server.build import build_packages, build_systems
 from build_server.consts import CFG_DIR, GC_DIR, PKGS_DIR
 from build_server.flake import update_flake
 from build_server.git import pull_repo, push_changes
-from build_server.update import (update_firefox_extensions, update_libusb,
+from build_server.update import (update_firefox_extensions,
                                  update_nvim)
 
 
@@ -21,7 +21,6 @@ def main(env: Path):
     update_flake(PKGS_DIR)
     pull_repo(PKGS_DIR)
     update_nvim()
-    update_libusb()
     update_firefox_extensions()
     build_packages()
     push_changes(PKGS_DIR)

@@ -64,10 +64,6 @@ def update_nvim():
     update_package('neovim/neovim', NVIM_JSON_PATH, 'neovim-unwrapped')
 
 
-def update_libusb():
-    update_package('libusb/libusb', LIBUSB_JSON_PATH, 'libusb-patched')
-
-
 def jwt_nonce() -> str:
     # i hate that this works
     return ''.join([str(random.randint(0, 9)) for _ in range(30)])
