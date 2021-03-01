@@ -10,8 +10,8 @@ import requests
 from github import Github
 
 from build_server.consts import (FAKE_HASH, FIREFOX_JSON_PATH, GITHUB_TOKEN,
-                                 HASH_RE, LIBUSB_JSON_PATH, NVIM_JSON_PATH,
-                                 PKGS_DIR, MOZILLA_ADDONS_USER, MOZILLA_ADDONS_SECRET)
+                                 HASH_RE, MOZILLA_ADDONS_SECRET,
+                                 MOZILLA_ADDONS_USER, NVIM_JSON_PATH, PKGS_DIR)
 from build_server.git import commit_changes
 
 
